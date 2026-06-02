@@ -57,6 +57,9 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define MOTION_INT_Pin GPIO_PIN_3
+#define MOTION_INT_GPIO_Port GPIOG
+#define MOTION_INT_EXTI_IRQn EXTI3_IRQn
 
 /* USER CODE BEGIN Private defines */
 
