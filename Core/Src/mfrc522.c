@@ -37,7 +37,7 @@ void MFRC522_Init(MFRC522_t *dev) {
     HAL_Delay(10);  // Let RF stabilize
 
     uint8_t version = MFRC522_ReadReg(dev, PCD_VersionReg);
-    if ((version != 0x91)||(version != 0x92)){
+    if ((version != 0x91) && (version != 0x92)){
     	USER_LOG("Version: 0x%02X (counterfeit OK for UID)", version);
     }
     else USER_LOG("Version: 0x%02X", version);

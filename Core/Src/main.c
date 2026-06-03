@@ -24,6 +24,7 @@
 // #include "mfrc522.h"
 #include "mfrc522.h"
 #include <stdio.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,6 +52,7 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 uint8_t txFWversion[128];
+uint8_t msg[256];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -115,67 +117,9 @@ int main(void)
   MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   
-  HAL_UART_Transmit(&huart3, "\nLooking for MFRC522... \n\0", sizeof("\nLooking for MFRC522... \n\0"), HAL_MAX_DELAY);
-
-
-
+  strcpy((char*)msg, "\r\nLooking for MFRC522... \r\n");
+  HAL_UART_Transmit(&huart3, msg, strlen((char*)msg), HAL_MAX_DELAY);
   MFRC522_Init(&rfID);
-
-
-
-
-
-
-
-
-  // MFRC522_Init();
-
-  // uint8_t firmwareVersion = MFRC522_GetVersion();
-
-  // sprintf(txFWversion, "\MFRC522 found. Firmware version: 0x%08X \n\0", firmwareVersion);
-  // HAL_UART_Transmit(&huart3, txFWversion, sizeof(txFWversion), HAL_MAX_DELAY);
-
-
-
-
-
-
-
-
-
-  // HAL_GPIO_WritePin(GPIOI, GPIO_PIN_8, GPIO_PIN_SET);
-  // uint8_t tx = 0x55;
-  // uint8_t rx = 0;
-
-  // HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_RESET);
-  // HAL_SPI_TransmitReceive(&hspi2, &tx, &rx, 1, 100);
-  // HAL_GPIO_WritePin(CS_GPIO_Port, CS_Pin, GPIO_PIN_SET);
-
-
-
-
-
-
-
-
-
-
-  // /*****************************************************************************************************
-  //  * 1. Wake-up PN532 and check if it is available by getting its firmware version
-  //  *****************************************************************************************************/
-  // HAL_UART_Transmit(&huart3, "\nLooking for PN532... \n\0", sizeof("\nLooking for PN532... \n\0"), HAL_MAX_DELAY);
-  // PN532_SPI_Init();
-  // while(1) {
-  //   firmwareVersion = PN532_getFirmwareVersion();
-  //   if (firmwareVersion != STATUS_532_ERROR) {               // if not able to read version number, quit
-  //     break;
-  //   }
-  //   HAL_Delay(250);
-  // }
-
-  // sprintf(txFWversion, "\nPN532 found. Firmware version: 0x%08X \n\0", firmwareVersion);
-  // HAL_UART_Transmit(&huart3, txFWversion, sizeof(txFWversion), HAL_MAX_DELAY);
-
 
   /* USER CODE END 2 */
 
@@ -183,11 +127,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  int a=1;
 	  /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    	  if (waitcardDetect(&rfID) == STATUS_OK){
+    if (waitcardDetect(&rfID) == STATUS_OK){
 		  if (MFRC522_ReadUid(&rfID, uid) == STATUS_OK){
 			  USER_LOG("CARD ID:%02X %02X %02X %02X", uid[0], uid[1], uid[2], uid[3]);
 			  if ((uid[0] == 0x06) && (uid[1] == 0x04) &&(uid[2] == 0x27) &&(uid[3] == 0x1F)){
