@@ -21,6 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+// #include "mfrc522.h"
 #include "mfrc522.h"
 #include <stdio.h>
 /* USER CODE END Includes */
@@ -32,8 +33,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define CS_GPIO_Port GPIOB
-#define CS_Pin GPIO_PIN_4
+// #define CS_GPIO_Port GPIOB
+// #define CS_Pin GPIO_PIN_4
 
 /* USER CODE END PD */
 
@@ -64,6 +65,17 @@ static void MX_SPI2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+int _write(int fd, unsigned char *buf, int len) {
+  if (fd == 1 || fd == 2) {                     // stdout or stderr ?
+    HAL_UART_Transmit(&huart3, buf, len, 999);  // Print to the UART
+  }
+  return len;
+}
+
+uint8_t uid[4];
+
+MFRC522_t rfID = {&hspi2, CS_GPIO_Port, CS_Pin, RESET_GPIO_Port, RESET_Pin};
 
 /* USER CODE END 0 */
 
@@ -104,12 +116,24 @@ int main(void)
   /* USER CODE BEGIN 2 */
   
   HAL_UART_Transmit(&huart3, "\nLooking for MFRC522... \n\0", sizeof("\nLooking for MFRC522... \n\0"), HAL_MAX_DELAY);
-  MFRC522_Init();
 
-  uint8_t firmwareVersion = MFRC522_GetVersion();
 
-  sprintf(txFWversion, "\MFRC522 found. Firmware version: 0x%08X \n\0", firmwareVersion);
-  HAL_UART_Transmit(&huart3, txFWversion, sizeof(txFWversion), HAL_MAX_DELAY);
+
+  MFRC522_Init(&rfID);
+
+
+
+
+
+
+
+
+  // MFRC522_Init();
+
+  // uint8_t firmwareVersion = MFRC522_GetVersion();
+
+  // sprintf(txFWversion, "\MFRC522 found. Firmware version: 0x%08X \n\0", firmwareVersion);
+  // HAL_UART_Transmit(&huart3, txFWversion, sizeof(txFWversion), HAL_MAX_DELAY);
 
 
 
@@ -163,6 +187,24 @@ int main(void)
 	  /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    	  if (waitcardDetect(&rfID) == STATUS_OK){
+		  if (MFRC522_ReadUid(&rfID, uid) == STATUS_OK){
+			  USER_LOG("CARD ID:%02X %02X %02X %02X", uid[0], uid[1], uid[2], uid[3]);
+			  if ((uid[0] == 0x06) && (uid[1] == 0x04) &&(uid[2] == 0x27) &&(uid[3] == 0x1F)){
+				  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_SET);
+				  HAL_Delay(1000);
+				  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_8, GPIO_PIN_RESET);
+			  }
+
+			  else if ((uid[0] == 0x1D) && (uid[1] == 0x7D) &&(uid[2] == 0xCD) &&(uid[3] == 0x73)){
+				  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);
+				  HAL_Delay(1000);
+				  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);
+			  }
+		  }
+		  waitcardRemoval(&rfID);
+	  }
+
   }
   /* USER CODE END 3 */
 }
