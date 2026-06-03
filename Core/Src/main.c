@@ -34,9 +34,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-// #define CS_GPIO_Port GPIOB
-// #define CS_Pin GPIO_PIN_4
-
+#define PWM_STEPS   100
+#define STEP_DELAY  10   // ms per step → 1s fade in/out
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -65,7 +64,7 @@ static void MX_USART3_UART_Init(void);
 static void MX_SPI2_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
-
+void LED_Breathe(void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -125,7 +124,9 @@ int main(void)
   HAL_UART_Transmit(&huart3, msg, strlen((char*)msg), HAL_MAX_DELAY);
   MFRC522_Init(&rfID);
 
-  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
+  LED_Breathe();
+
+  // HAL_GPIO_WritePin(GPIOA, GPIO_PIN_6, GPIO_PIN_SET);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -417,6 +418,27 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 
+void LED_Breathe() 
+{
+    HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_1);
+
+    while (1)
+    {
+        // Fade IN: 0% → 100%
+        for (uint32_t i = 0; i <= PWM_STEPS; i++)
+        {
+            __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, i);
+            HAL_Delay(STEP_DELAY);
+        }
+
+        // Fade OUT: 100% → 0%
+        for (int32_t i = PWM_STEPS; i >= 0; i--)
+        {
+            __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, i);
+            HAL_Delay(STEP_DELAY);
+        }
+    }
+}
 /* USER CODE END 4 */
 
  /* MPU Configuration */
